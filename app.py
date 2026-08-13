@@ -39,120 +39,157 @@ st.set_page_config(
 # ---------------------------------------------------------------------------
 st.markdown("""
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&display=swap');
+
     :root {
-        --navy: #1F3864;
-        --navy-light: #2E4E8C;
+        --accent-1: #7C3AED;
+        --accent-2: #06B6D4;
+        --accent-1-soft: rgba(124, 58, 237, 0.15);
     }
 
-    /* Overall app background and font */
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
+    }
+
     .stApp {
-        background-color: #0E1117;
+        background: radial-gradient(circle at 15% 0%, #1a1230 0%, #0E1117 45%);
     }
 
-    /* Main title */
-    h1 {
+    /* Hero banner */
+    .hero {
+        background: linear-gradient(120deg, #7C3AED 0%, #4C1D95 45%, #06B6D4 100%);
+        border-radius: 16px;
+        padding: 32px 32px 28px 32px;
+        margin-bottom: 24px;
+        box-shadow: 0 8px 30px rgba(124, 58, 237, 0.25);
+    }
+    .hero h1 {
+        font-family: 'Poppins', sans-serif !important;
         font-weight: 800 !important;
+        color: white !important;
+        margin: 0 !important;
+        font-size: 2.1rem !important;
         letter-spacing: -0.5px;
-        padding-bottom: 0px !important;
     }
-
-    /* Subtitle / intro text */
-    .subtitle-text {
-        color: #9CA3AF;
-        font-size: 1.05rem;
-        margin-top: -8px;
-        margin-bottom: 28px;
-        line-height: 1.5;
-    }
-
-    /* Card wrapper for input sections */
-    .card {
-        background-color: #161B22;
-        border: 1px solid #262D38;
-        border-radius: 12px;
-        padding: 24px 24px 8px 24px;
-        margin-bottom: 20px;
+    .hero p {
+        color: rgba(255,255,255,0.88);
+        font-size: 1.02rem;
+        margin-top: 8px;
+        margin-bottom: 0;
+        line-height: 1.55;
+        max-width: 640px;
     }
 
     /* Section labels above text areas */
     .field-label {
+        font-family: 'Poppins', sans-serif;
         font-weight: 600;
-        font-size: 0.95rem;
-        color: #E5E7EB;
-        margin-bottom: 6px;
+        font-size: 1rem;
+        color: #F3F4F6;
+        margin-bottom: 8px;
+        margin-top: 4px;
+    }
+
+    /* Native bordered containers used as cards */
+    div[data-testid="stVerticalBlockBorderWrapper"] {
+        background-color: #161225 !important;
+        border: 1px solid #2E2547 !important;
+        border-radius: 14px !important;
     }
 
     /* Text areas */
     .stTextArea textarea {
         background-color: #0E1117 !important;
-        border: 1px solid #30363D !important;
+        border: 1px solid #322A4A !important;
         border-radius: 8px !important;
         font-size: 0.92rem !important;
+        color: #E5E7EB !important;
     }
     .stTextArea textarea:focus {
-        border: 1px solid var(--navy-light) !important;
-        box-shadow: 0 0 0 1px var(--navy-light) !important;
+        border: 1px solid var(--accent-2) !important;
+        box-shadow: 0 0 0 1px var(--accent-2) !important;
     }
 
-    /* Primary button */
+    /* Slider label */
+    .stSlider label p {
+        font-family: 'Poppins', sans-serif;
+        font-weight: 600 !important;
+        color: #F3F4F6 !important;
+    }
+
+    /* Primary button - gradient */
     .stButton > button {
-        background-color: var(--navy) !important;
+        background: linear-gradient(90deg, #7C3AED 0%, #06B6D4 100%) !important;
         color: white !important;
         border: none !important;
         border-radius: 8px !important;
-        padding: 0.6rem 1.4rem !important;
-        font-weight: 600 !important;
-        transition: background-color 0.15s ease;
+        padding: 0.65rem 1.4rem !important;
+        font-weight: 700 !important;
+        font-family: 'Poppins', sans-serif !important;
+        letter-spacing: 0.2px;
+        transition: transform 0.12s ease, box-shadow 0.12s ease;
     }
     .stButton > button:hover {
-        background-color: var(--navy-light) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(124, 58, 237, 0.4);
     }
 
     /* Question card during the answering stage */
     .question-card {
-        background-color: #161B22;
-        border-left: 4px solid var(--navy-light);
-        border-radius: 8px;
-        padding: 18px 20px;
+        background: linear-gradient(135deg, #1E1638 0%, #161225 100%);
+        border-left: 4px solid var(--accent-2);
+        border-radius: 10px;
+        padding: 20px 22px;
         margin-bottom: 18px;
-        font-size: 1.05rem;
-        line-height: 1.5;
+        font-size: 1.08rem;
+        line-height: 1.55;
+        color: #F3F4F6;
     }
 
     /* Progress label */
     .progress-label {
-        color: #9CA3AF;
+        color: var(--accent-2);
         font-size: 0.85rem;
-        font-weight: 600;
+        font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 4px;
+        letter-spacing: 1px;
+        margin-bottom: 6px;
     }
 
     /* Score badge in the report */
     .score-badge {
         display: inline-block;
-        padding: 3px 12px;
+        padding: 4px 14px;
         border-radius: 20px;
         font-weight: 700;
         font-size: 0.85rem;
         color: white;
+        font-family: 'Poppins', sans-serif;
     }
 
     /* Keyword pills */
     .keyword-pill {
         display: inline-block;
-        background-color: #1F3864;
+        background: linear-gradient(90deg, #4C1D95 0%, #164E63 100%);
         color: #E5E7EB;
-        padding: 4px 12px;
+        padding: 5px 14px;
         border-radius: 20px;
         font-size: 0.85rem;
-        margin: 3px 4px 3px 0;
+        margin: 3px 5px 3px 0;
+        border: 1px solid #322A4A;
     }
 
-    /* Divider spacing tweak */
+    /* Metric cards */
+    div[data-testid="stMetric"] {
+        background-color: #161225;
+        border: 1px solid #2E2547;
+        border-radius: 12px;
+        padding: 14px 10px;
+    }
+
     hr {
         margin: 1.2rem 0 !important;
+        border-color: #2E2547 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -255,28 +292,26 @@ if "missing_keywords_all" not in st.session_state:
     st.session_state.missing_keywords_all = []
 
 
-st.title("🎤 GenAI Mock-Interview Coach")
-st.markdown(
-    '<p class="subtitle-text">Paste your resume and a target job description. '
-    'Get tailored questions, answer them, and see exactly where you\'d lose '
-    'points in a real interview.</p>',
-    unsafe_allow_html=True,
-)
+st.markdown("""
+<div class="hero">
+    <h1>🎤 GenAI Mock-Interview Coach</h1>
+    <p>Paste your resume and a target job description. Get tailored questions,
+    answer them, and see exactly where you'd lose points in a real interview.</p>
+</div>
+""", unsafe_allow_html=True)
 
 
 # ---------------------------------------------------------------------------
 # Stage 1: setup - collect resume + job description
 # ---------------------------------------------------------------------------
 if st.session_state.stage == "setup":
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown('<div class="field-label">📄 Your Resume</div>', unsafe_allow_html=True)
-    resume = st.text_area("Resume", height=180, label_visibility="collapsed", placeholder="Paste your resume as plain text...")
-    st.markdown('</div>', unsafe_allow_html=True)
+    with st.container(border=True):
+        st.markdown('<div class="field-label">📄 Your Resume</div>', unsafe_allow_html=True)
+        resume = st.text_area("Resume", height=180, label_visibility="collapsed", placeholder="Paste your resume as plain text...")
 
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown('<div class="field-label">🎯 Target Job Description</div>', unsafe_allow_html=True)
-    job_description = st.text_area("Job Description", height=180, label_visibility="collapsed", placeholder="Paste the job description you're targeting...")
-    st.markdown('</div>', unsafe_allow_html=True)
+    with st.container(border=True):
+        st.markdown('<div class="field-label">🎯 Target Job Description</div>', unsafe_allow_html=True)
+        job_description = st.text_area("Job Description", height=180, label_visibility="collapsed", placeholder="Paste the job description you're targeting...")
 
     num_questions = st.slider("Number of questions", 3, 8, 5)
 
