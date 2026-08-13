@@ -18,6 +18,7 @@ Requires:
 """
 
 import os
+import hashlib
 import streamlit as st
 from google import genai
 from dotenv import load_dotenv
@@ -42,9 +43,11 @@ st.markdown("""
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&display=swap');
 
     :root {
-        --accent-1: #7C3AED;
-        --accent-2: #06B6D4;
-        --accent-1-soft: rgba(124, 58, 237, 0.15);
+        --burgundy-deep: #2B0A12;
+        --burgundy: #6B1E2B;
+        --burgundy-light: #8C2F3F;
+        --cream: #F0E6D2;
+        --cream-soft: rgba(240, 230, 210, 0.15);
     }
 
     html, body, [class*="css"] {
@@ -52,16 +55,17 @@ st.markdown("""
     }
 
     .stApp {
-        background: radial-gradient(circle at 15% 0%, #1a1230 0%, #0E1117 45%);
+        background: radial-gradient(circle at 15% 0%, #3B0F1B 0%, #170609 55%);
     }
 
     /* Hero banner */
     .hero {
-        background: linear-gradient(120deg, #7C3AED 0%, #4C1D95 45%, #06B6D4 100%);
+        background: linear-gradient(120deg, #2B0A12 0%, #6B1E2B 55%, #12294F 100%);
+        border: 1px solid #8C2F3F;
         border-radius: 16px;
         padding: 32px 32px 28px 32px;
         margin-bottom: 24px;
-        box-shadow: 0 8px 30px rgba(124, 58, 237, 0.25);
+        box-shadow: 0 8px 30px rgba(43, 10, 18, 0.5);
     }
     .hero h1 {
         font-family: 'Poppins', sans-serif !important;
@@ -72,7 +76,7 @@ st.markdown("""
         letter-spacing: -0.5px;
     }
     .hero p {
-        color: rgba(255,255,255,0.88);
+        color: rgba(255,255,255,0.82);
         font-size: 1.02rem;
         margin-top: 8px;
         margin-bottom: 0;
@@ -92,22 +96,22 @@ st.markdown("""
 
     /* Native bordered containers used as cards */
     div[data-testid="stVerticalBlockBorderWrapper"] {
-        background-color: #161225 !important;
-        border: 1px solid #2E2547 !important;
+        background-color: #25080F !important;
+        border: 1px solid #4A1622 !important;
         border-radius: 14px !important;
     }
 
     /* Text areas */
     .stTextArea textarea {
-        background-color: #0E1117 !important;
-        border: 1px solid #322A4A !important;
+        background-color: #170609 !important;
+        border: 1px solid #4A1622 !important;
         border-radius: 8px !important;
         font-size: 0.92rem !important;
         color: #E5E7EB !important;
     }
     .stTextArea textarea:focus {
-        border: 1px solid var(--accent-2) !important;
-        box-shadow: 0 0 0 1px var(--accent-2) !important;
+        border: 1px solid var(--cream) !important;
+        box-shadow: 0 0 0 1px var(--cream) !important;
     }
 
     /* Slider label */
@@ -117,11 +121,11 @@ st.markdown("""
         color: #F3F4F6 !important;
     }
 
-    /* Primary button - gradient */
+    /* Primary button - burgundy to cream accent */
     .stButton > button {
-        background: linear-gradient(90deg, #7C3AED 0%, #06B6D4 100%) !important;
+        background: linear-gradient(90deg, #6B1E2B 0%, #8C2F3F 100%) !important;
         color: white !important;
-        border: none !important;
+        border: 1px solid var(--cream) !important;
         border-radius: 8px !important;
         padding: 0.65rem 1.4rem !important;
         font-weight: 700 !important;
@@ -131,13 +135,14 @@ st.markdown("""
     }
     .stButton > button:hover {
         transform: translateY(-1px);
-        box-shadow: 0 6px 18px rgba(124, 58, 237, 0.4);
+        box-shadow: 0 6px 18px rgba(240, 230, 210, 0.35);
+        border: 1px solid var(--cream) !important;
     }
 
     /* Question card during the answering stage */
     .question-card {
-        background: linear-gradient(135deg, #1E1638 0%, #161225 100%);
-        border-left: 4px solid var(--accent-2);
+        background: linear-gradient(135deg, #25080F 0%, #2B0A12 100%);
+        border-left: 4px solid var(--cream);
         border-radius: 10px;
         padding: 20px 22px;
         margin-bottom: 18px;
@@ -148,7 +153,7 @@ st.markdown("""
 
     /* Progress label */
     .progress-label {
-        color: var(--accent-2);
+        color: var(--cream);
         font-size: 0.85rem;
         font-weight: 700;
         text-transform: uppercase;
@@ -170,26 +175,46 @@ st.markdown("""
     /* Keyword pills */
     .keyword-pill {
         display: inline-block;
-        background: linear-gradient(90deg, #4C1D95 0%, #164E63 100%);
+        background: linear-gradient(90deg, #6B1E2B 0%, #2B0A12 100%);
         color: #E5E7EB;
         padding: 5px 14px;
         border-radius: 20px;
         font-size: 0.85rem;
         margin: 3px 5px 3px 0;
-        border: 1px solid #322A4A;
+        border: 1px solid var(--cream);
     }
 
     /* Metric cards */
     div[data-testid="stMetric"] {
-        background-color: #161225;
-        border: 1px solid #2E2547;
+        background-color: #25080F;
+        border: 1px solid #4A1622;
         border-radius: 12px;
         padding: 14px 10px;
     }
 
     hr {
         margin: 1.2rem 0 !important;
-        border-color: #2E2547 !important;
+        border-color: #4A1622 !important;
+    }
+
+    /* Login page specific styling */
+    .login-wrapper {
+        max-width: 420px;
+        margin: 60px auto 0 auto;
+    }
+    .login-title {
+        font-family: 'Poppins', sans-serif;
+        font-weight: 800;
+        font-size: 1.6rem;
+        color: white;
+        text-align: center;
+        margin-bottom: 4px;
+    }
+    .login-subtitle {
+        text-align: center;
+        color: #9CA3AF;
+        font-size: 0.92rem;
+        margin-bottom: 24px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -274,6 +299,63 @@ def score_answer(client, question, answer, job_description):
 
 
 # ---------------------------------------------------------------------------
+# Authentication - simple hashed-password login gate. The plaintext password
+# is never stored anywhere; only its SHA-256 hash is compared. Credentials
+# come from environment variables (APP_USERNAME, APP_PASSWORD_HASH), which
+# you set via .env locally or Streamlit Cloud's Secrets panel - never hard-
+# code real credentials directly in this file.
+# ---------------------------------------------------------------------------
+
+def hash_password(password):
+    return hashlib.sha256(password.encode("utf-8")).hexdigest()
+
+
+def check_credentials(username, password):
+    correct_username = os.environ.get("APP_USERNAME", "")
+    correct_password_hash = os.environ.get("APP_PASSWORD_HASH", "")
+    if not correct_username or not correct_password_hash:
+        return False
+    return username == correct_username and hash_password(password) == correct_password_hash
+
+
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+
+
+def render_login_page():
+    st.markdown("""
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&family=Inter:wght@400;500&display=swap');
+        .stApp {
+            background: radial-gradient(circle at 50% 0%, #3B0F1B 0%, #170609 60%);
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown('<div class="login-wrapper">', unsafe_allow_html=True)
+    st.markdown('<div class="login-title">🔒 GenAI Mock-Interview Coach</div>', unsafe_allow_html=True)
+    st.markdown('<div class="login-subtitle">Sign in to continue</div>', unsafe_allow_html=True)
+
+    with st.container(border=True):
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+
+        if st.button("Log In", use_container_width=True):
+            if check_credentials(username, password):
+                st.session_state.authenticated = True
+                st.rerun()
+            else:
+                st.error("Incorrect username or password.")
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
+if not st.session_state.authenticated:
+    render_login_page()
+    st.stop()
+
+
+# ---------------------------------------------------------------------------
 # Session state - Streamlit re-runs the whole script on every click, so we
 # store progress in st.session_state to remember where we are.
 # ---------------------------------------------------------------------------
@@ -299,6 +381,12 @@ st.markdown("""
     answer them, and see exactly where you'd lose points in a real interview.</p>
 </div>
 """, unsafe_allow_html=True)
+
+with st.sidebar:
+    st.write(f"Logged in")
+    if st.button("Log Out"):
+        st.session_state.authenticated = False
+        st.rerun()
 
 
 # ---------------------------------------------------------------------------
