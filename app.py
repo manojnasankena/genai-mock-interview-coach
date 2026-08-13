@@ -18,7 +18,6 @@ Requires:
 """
 
 import os
-import hashlib
 import streamlit as st
 from google import genai
 from dotenv import load_dotenv
@@ -197,6 +196,38 @@ st.markdown("""
         border-color: #4A1622 !important;
     }
 
+    /* --- App-like feel: hide Streamlit's default web chrome --- */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    div[data-testid="stToolbar"] {visibility: hidden;}
+    div[data-testid="stDecoration"] {visibility: hidden;}
+    header[data-testid="stHeader"] {background: transparent;}
+
+    /* Tighter top padding so content sits higher, like a native app screen */
+    .block-container {
+        padding-top: 2rem !important;
+        padding-bottom: 2rem !important;
+        max-width: 680px;
+    }
+
+    /* Rounded, app-style expander cards in the report */
+    div[data-testid="stExpander"] {
+        border: 1px solid #4A1622 !important;
+        border-radius: 12px !important;
+        background-color: #25080F !important;
+    }
+
+    /* App-style rounded buttons */
+    .stButton > button {
+        border-radius: 12px !important;
+    }
+
+    /* Sidebar styling to feel like an app profile drawer */
+    section[data-testid="stSidebar"] {
+        background-color: #170609 !important;
+        border-right: 1px solid #4A1622;
+    }
+
     /* Login page specific styling */
     .login-wrapper {
         max-width: 420px;
@@ -299,28 +330,11 @@ def score_answer(client, question, answer, job_description):
 
 
 # ---------------------------------------------------------------------------
-# Authentication - simple hashed-password login gate. The plaintext password
-# is never stored anywhere; only its SHA-256 hash is compared. Credentials
-# come from environment variables (APP_USERNAME, APP_PASSWORD_HASH), which
-# you set via .env locally or Streamlit Cloud's Secrets panel - never hard-
-# code real credentials directly in this file.
+# Authentication - "Sign in with Google" using Streamlit's built-in OIDC
+# support. No password is ever created, stored, or checked by this app -
+# Google handles identity verification entirely. See the setup instructions
+# in README_AUTH_SETUP.md for how to configure secrets.toml.
 # ---------------------------------------------------------------------------
-
-def hash_password(password):
-    return hashlib.sha256(password.encode("utf-8")).hexdigest()
-
-
-def check_credentials(username, password):
-    correct_username = os.environ.get("APP_USERNAME", "")
-    correct_password_hash = os.environ.get("APP_PASSWORD_HASH", "")
-    if not correct_username or not correct_password_hash:
-        return False
-    return username == correct_username and hash_password(password) == correct_password_hash
-
-
-if "authenticated" not in st.session_state:
-    st.session_state.authenticated = False
-
 
 def render_login_page():
     st.markdown("""
@@ -333,26 +347,22 @@ def render_login_page():
     """, unsafe_allow_html=True)
 
     st.markdown('<div class="login-wrapper">', unsafe_allow_html=True)
-    st.markdown('<div class="login-title">🔒 GenAI Mock-Interview Coach</div>', unsafe_allow_html=True)
-    st.markdown('<div class="login-subtitle">Sign in to continue</div>', unsafe_allow_html=True)
+    st.markdown('<div class="login-title">🎤 GenAI Mock-Interview Coach</div>', unsafe_allow_html=True)
+    st.markdown('<div class="login-subtitle">Sign in with Google to continue</div>', unsafe_allow_html=True)
 
     with st.container(border=True):
-        username = st.text_input("Username")
-        password = st.text_input("Password", type="password")
-
-        if st.button("Log In", use_container_width=True):
-            if check_credentials(username, password):
-                st.session_state.authenticated = True
-                st.rerun()
-            else:
-                st.error("Incorrect username or password.")
+        st.write("")
+        if st.button("🔐  Continue with Google", use_container_width=True):
+            st.login()
+        st.write("")
 
     st.markdown('</div>', unsafe_allow_html=True)
 
 
-if not st.session_state.authenticated:
+if not st.user.is_logged_in:
     render_login_page()
     st.stop()
+
 
 
 # ---------------------------------------------------------------------------
@@ -383,10 +393,12 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 with st.sidebar:
-    st.write(f"Logged in")
-    if st.button("Log Out"):
-        st.session_state.authenticated = False
-        st.rerun()
+    if st.user.get("picture"):
+        st.image(st.user.picture, width=64)
+    st.write(f"**{st.user.name}**")
+    st.caption(st.user.email)
+    if st.button("Log Out", use_container_width=True):
+        st.logout()
 
 
 # ---------------------------------------------------------------------------
